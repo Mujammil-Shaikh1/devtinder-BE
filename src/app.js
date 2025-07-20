@@ -1,17 +1,13 @@
 const express = require('express');
 const app = express();
+const { adminAuth } = require("./middlewares/auth")
 
-app.use("/user", [(req, res, next) => {
-  console.log("user no 1 ");
-  next();
-}, (req, res, next) => {
-  console.log("user no 2");
-  res.send("Request fullfilled");
-}], (req, res) => {
-  console.log("user no 3");
-  res.send("hello world")
+app.use("/admin", adminAuth)
+
+app.get("/admin/getUsers", (req, res) => {
+  // Fetch users logic;
+  res.send("Users List");
 })
-
 app.listen(4091, () => {
   console.log("Server running on port 4091")
 });
