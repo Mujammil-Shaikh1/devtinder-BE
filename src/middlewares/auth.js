@@ -1,6 +1,6 @@
 const adminAuth = (req, res, next) => {
   let token = "secret"
-  if (token === 'secmret') {
+  if (token === 'secret') {
     next();
   }
   else {
