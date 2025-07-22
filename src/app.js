@@ -13,7 +13,7 @@ app.post("/signup", async (req, res) => {
     await user.save();
     res.send("User created successfully")
   } catch (err) {
-    res.status(400).send("Something went wrong", err.message)
+    res.status(400).send(err.message)
   }
 
 })
@@ -29,7 +29,7 @@ app.get("/user", async (req, res) => {
       res.status(404).send("User not found")
     }
   } catch (err) {
-    res.status(400).send("Something went wrong", err.message)
+    res.status(400).send(err.message)
   }
 
 })
@@ -45,7 +45,7 @@ app.get("/feed", async (req, res) => {
       res.status(404).send("Users not found")
     }
   } catch (err) {
-    res.status(400).send("Something went wrong", err.message)
+    res.status(400).send(err.message)
 
   }
 })
@@ -64,7 +64,7 @@ app.delete("/user/:id", async (req, res) => {
       res.send("User deleted successfully");
     }
   } catch (err) {
-    res.status(400).send("Something went wrong", err.message)
+    res.status(400).send(err.message)
 
   }
 })
@@ -72,15 +72,24 @@ app.delete("/user/:id", async (req, res) => {
 app.patch("/user/:id", async (req, res) => {
 
   const id = req.params.id;
+  const data = req.body
+  const validKeys = ["fullName", "userName", "password", "confirmPass", "age", "gender", "profilePic"]
+  const isValidUser = Object.keys(data).every((k) => validKeys.includes(k));
+
   try {
-    const user = await User.findByIdAndUpdate(id, req.body);
+    if (!isValidUser) {
+      throw new Error("Update not allowed")
+    }
+    const user = await User.findByIdAndUpdate(id, req.body, {
+      runValidators: true
+    });
     if (!user) {
       res.status(400).send("Can't update an user")
     } else {
       res.send("User updated successfully");
     }
   } catch (err) {
-    res.status(400).send("Something went wrong", err.message)
+    res.status(400).send(err.message)
   }
 
 })
@@ -88,8 +97,8 @@ app.patch("/user/:id", async (req, res) => {
 
 connectDB().then(() => {
   console.log("Connection to database established")
-  app.listen(4091, () => {
-    console.log("Server running on port 4091")
+  app.listen(4000, () => {
+    console.log("Server running on port 4000")
   });
 }).catch((err) => {
   console.log("Error while connect to DB")
