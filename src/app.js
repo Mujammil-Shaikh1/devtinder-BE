@@ -4,8 +4,11 @@ const connectDB = require("./config/database");
 const User = require('./models/user');
 const { userValidation } = require("./utils/validattion");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
 
@@ -13,7 +16,6 @@ app.post("/signup", async (req, res) => {
     userValidation(req.body)
     const password = req.body.password;
     const hashPassword = await bcrypt.hash(password, 10);
-    console.log("hashPassword", hashPassword)
     const user = new User({ ...req.body, password: hashPassword, confirmPass: hashPassword });
     await user.save();
     res.send("User created successfully")
@@ -37,10 +39,30 @@ app.post("/login", async (req, res) => {
       throw new Error("Invalid Credentials");
     }
     else {
+      const user = await User.findOne({ email: email })
+      const jwtToken = await jwt.sign({ _id: user._id }, "MY_SECRET");
+      if (!user) {
+        throw new Error("User does not exists");
+      }
+      res.cookie('jwtToken', jwtToken);
       res.send("Login Success");
     }
   }
   catch (err) {
+    res.status(400).send(err.message)
+  }
+})
+
+app.get("/profile", async (req, res) => {
+  try {
+    const { jwtToken } = req.cookies;
+    const { _id } = await jwt.verify(jwtToken, "MY_SECRET");
+    const user = await User.findById(_id);
+    if (!user) {
+      throw new Error("User not found")
+    }
+    res.send(user)
+  } catch (err) {
     res.status(400).send(err.message)
   }
 })
