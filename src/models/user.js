@@ -1,5 +1,7 @@
 const { Schema, model } = require("mongoose");
-const validator = require("validator")
+const validator = require("validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const userSchema = new Schema({
   fullName: {
     type: String,
@@ -100,6 +102,18 @@ const userSchema = new Schema({
     timestamps: true
   }
 )
+userSchema.methods.createJWT = async function () {
+  const user = this;
+  const jwtToken = await jwt.sign({ _id: user._id }, "MY_SECRET");
+  return jwtToken
+}
+
+userSchema.methods.validatePass = async function (userPass) {
+
+  const user = this;
+  const isValidPass = await bcrypt.compare(userPass, user.password);
+  return isValidPass
+}
 const User = model('User', userSchema)
 
 module.exports = User
