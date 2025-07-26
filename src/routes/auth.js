@@ -10,7 +10,7 @@ authRouter.post("/signup", async (req, res) => {
     userValidation(req.body)
     const password = req.body.password;
     const hashPassword = await bcrypt.hash(password, 10);
-    const user = new User({ ...req.body, password: hashPassword, confirmPass: hashPassword });
+    const user = new User({ ...req.body, password: hashPassword });
     await user.save();
     res.send("User created successfully")
   } catch (err) {
@@ -42,6 +42,15 @@ authRouter.post("/login", async (req, res) => {
     }
   }
   catch (err) {
+    res.status(400).send(err.message)
+  }
+})
+
+authRouter.post("/logout", (req, res) => {
+  try {
+    res.cookie('jwtToken', null, { expires: new Date(Date.now()) });
+    res.send("Logout succesful")
+  } catch (err) {
     res.status(400).send(err.message)
   }
 })

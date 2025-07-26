@@ -3,13 +3,11 @@ const profileRouter = express.Router();
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const userAuth = require("../middlewares/auth");
-
+const bcrypt = require("bcrypt");
 
 profileRouter.get("/profile", userAuth, async (req, res) => {
   try {
-    const { jwtToken } = req.cookies;
-    const { _id } = await jwt.verify(jwtToken, "MY_SECRET");
-    const user = await User.findById(_id);
+    const user = req.user;
     if (!user) {
       throw new Error("User not found")
     }
@@ -19,26 +17,48 @@ profileRouter.get("/profile", userAuth, async (req, res) => {
   }
 })
 
-profileRouter.patch("/user/:id", async (req, res) => {
-
-  const id = req.params.id;
+profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
   const data = req.body
-  const validKeys = ["fullName", "userName", "password", "confirmPass", "age", "gender", "profilePic"]
+  const validKeys = ["fullName", "userName", "age", "gender", "profilePic"]
   const isValidUser = Object.keys(data).every((k) => validKeys.includes(k));
-
   try {
+    const user = req.user;
     if (!isValidUser) {
       throw new Error("Update not allowed")
     }
-    const user = await User.findByIdAndUpdate(id, req.body, {
+    const updateUser = await User.findByIdAndUpdate(user._id, req.body, {
       runValidators: true
     });
-    if (!user) {
+    if (!updateUser) {
       res.status(400).send("Can't update an user")
     } else {
       res.send("User updated successfully");
     }
   } catch (err) {
+    res.status(400).send(err.message)
+  }
+})
+
+profileRouter.patch("/profile/password", userAuth, async (req, res) => {
+  try {
+    const { currentPass, newPass } = req.body;
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json("User not found");
+    }
+    const isValidPass = await bcrypt.compare(currentPass, user.password);
+    if (!isValidPass) {
+      throw new Error("Please enter correct current password")
+    }
+    if (!newPass) {
+      throw new Error("Password can not be empty")
+    }
+    const newPassHash = await bcrypt.hash(newPass, 10);
+    await User.findByIdAndUpdate(user._id, { password: newPassHash });
+    res.cookie('jwtToken', null, { expires: new Date(Date.now()) });
+    res.send("password Updated Successfully")
+  }
+  catch (err) {
     res.status(400).send(err.message)
   }
 

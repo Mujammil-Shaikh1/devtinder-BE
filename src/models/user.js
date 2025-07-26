@@ -49,16 +49,6 @@ const userSchema = new Schema({
       "Password must include uppercase, lowercase, number, and special character",
     ],
   },
-  confirmPass: {
-    type: String,
-    required: [true, "Confirm password is required"],
-    minlength: [8, "Confirm password must be at least 8 characters"],
-    maxLength: [128, "Confirm password cannot exceed 128 characters"],
-    match: [
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
-      "Confirm password must include uppercase, lowercase, number, and special character",
-    ],
-  },
   age: {
     type: Number,
     min: [13, "Minimum age is 13"],
