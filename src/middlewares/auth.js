@@ -4,7 +4,7 @@ const userAuth = async (req, res, next) => {
   try {
     const { jwtToken } = req.cookies;
     if (!jwtToken) {
-      throw new Error("Token not found")
+      return res.status(401).send("Session expired, Please login")
     }
     const { _id } = await jwt.verify(jwtToken, "MY_SECRET");
     const user = await User.findById(_id);

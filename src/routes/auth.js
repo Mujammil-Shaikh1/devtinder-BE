@@ -31,13 +31,13 @@ authRouter.post("/login", async (req, res) => {
       throw new Error("Invalid Credentials");
     }
     else {
-      const user = await User.findOne({ email: email });
+      const user = await User.findOne({ email: email }).select(["fullName", "userName", "email", "phone", "age", "gender", "profilePic", "address"])
       const jwtToken = await user.createJWT();
       if (!user) {
         throw new Error("User does not exists");
       }
       res.cookie('jwtToken', jwtToken, { expires: new Date(Date.now() + 8 * 3600000) });
-      res.send("Login Success");
+      res.send(user);
     }
   }
   catch (err) {

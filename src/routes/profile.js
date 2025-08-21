@@ -27,13 +27,13 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
       throw new Error("Update not allowed")
     }
     const updateUser = await User.findByIdAndUpdate(user._id, req.body, {
+      new: true,
       runValidators: true
-    });
+    }).select(["fullName", "userName", "email", "phone", "age", "gender", "profilePic", "address"]);
     if (!updateUser) {
       res.status(400).send("Can't update an user")
-    } else {
-      res.send("User updated successfully");
     }
+    res.send(updateUser);
   } catch (err) {
     res.status(400).send(err.message)
   }
